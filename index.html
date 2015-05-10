@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script>
+    google.load('visualization', '1.1', {packages: ['line']});
+    //google.setOnLoadCallback(drawChart);
+
+    google.setOnLoadCallback(function() {
+        angular.bootstrap(document.body, ['App']);
+    });
+
+    var App = angular.module('App', []);
+
+    App.controller('omnikCtrl', function($scope, $http) {
+        var url = 'http://nas:3000?callback=JSON_CALLBACK';
+        $http.jsonp(url)
+                .success(function(data){
+                    $scope.omnik = data;
+
+                    var data1 = new google.visualization.DataTable();
+                    data1.addColumn('datetime', 'Tijd');
+                    data1.addColumn('number', 'kWh');
+
+                    var todaysProduction = data[data.length - 1]["TodaysProduction"].toFixed(2);
+
+                    for(i = 0 ; i < data.length;i++) {
+                        data1.addRow([
+                            new Date(data[i]["timeStamp"]),
+                            parseInt(data[i]["CurrentProduction"])
+                        ])
+                        console.log( data[i]["timeStamp"].toString().slice(11,19))
+
+                    }
+
+
+                    var options = {
+                        chart: {
+                            title: 'Omnik omvormer',
+                            subtitle: 'Totale opbrengst vandaag ' + todaysProduction + ' kWh'
+                        },
+
+                        width: 900,
+                        height: 500
+                    };
+
+                    var chart = new google.charts.Line(document.getElementById('grafiek'));
+
+                    chart.draw(data1, options);
+
+                })});
+</script>
+
+<body>
+<div ng-controller="omnikCtrl" id="grafiek"/>
+</body>
+</html>
